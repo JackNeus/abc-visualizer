@@ -1,0 +1,48 @@
+<!DOCTYPE HTML>
+<html>
+<head>  
+<script type="text/javascript" src="data.js"></script>
+<script type="text/javascript" src="vis.js"></script>
+</head>
+<body>
+
+<label for="domain">Domain</label>
+<select id="domain" onchange="render()">
+  <option value="">All Letters</option>
+  <option value="A">A</option>
+  <option value="B">B</option>
+  <option value="C">C</option>
+  <option value="D">D</option>
+  <option value="E">E</option>
+  <option value="F">F</option>
+  <option value="G">G</option>
+  <option value="H">H</option>
+  <option value="I">I</option>
+  <option value="J">J</option>
+  <option value="K">K</option>
+  <option value="L">L</option>
+  <option value="M">M</option>
+  <option value="N">N</option>
+  <option value="O">O</option>
+  <option value="P">P</option>
+  <option value="Q">Q</option>
+  <option value="R">R</option>
+  <option value="S">S</option>
+  <option value="T">T</option>
+  <option value="U">U</option>
+  <option value="V">V</option>
+  <option value="W">W</option>
+  <option value="X">X</option>
+  <option value="Y">Y</option>
+  <option value="Z">Z</option>
+</select>
+<label for="bucketSize">Bucket Size (in Years)&nbsp;&nbsp;</label>
+<input id="bucketSize" type="text" value="10" onchange="render()" onblur="render()"/>
+<label for="animate">Animate</label>
+<input id="animate" type="checkbox" checked="true" onclick="if (!this.checked) render()"/>
+<button onclick="render()">Go</button>
+
+<div id="chartContainer" style="height: 600px; width: 100%;"></div>
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+</body>
+</html>
