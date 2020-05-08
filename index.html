@@ -8,8 +8,9 @@
 </head>
 
 <body>
+    <!--- TODO: Show Legend -->
     <label for="domain">Domain</label>
-    <select id="domain" onchange="render()">
+    <select id="domain" onchange="render(false)">
         <option value="">All Letters</option>
         <option value="A">A</option>
         <option value="B">B</option>
@@ -40,9 +41,31 @@
     </select>
     <label for="bucketSize">Bucket Size (in Years)&nbsp;&nbsp;</label>
     <input id="bucketSize" type="text" value="10" onchange="render()" onblur="render()" />
-    <label for="animate">Animate</label>
-    <input id="animate" type="checkbox" checked="true" onclick="if (!this.checked) render()" />
-    <button onclick="render()">Go</button>
+    <div style="margin: 5px; border: 1px solid black; display: inline-block;">
+      Top 
+      <select id="topN" onchange="render()">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3" selected>3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+      Words From Each Year
+      <b>OR</b>
+      Specific Words
+      <input type="text" id="words" placeholder="apple;boat;dog" onchange="render()" onblur="render()" />
+    </div>
+    <label for="interpolate">Interpolate</label>
+    <input id="interpolate" type="checkbox" checked onclick="render()"/>
+    <label for="hideTies" id="tieText">Hide Ties for Last</label>
+    <input id="hideTies" type="checkbox" checked/>
+    <button onclick="render(true)">Animate</button>
+    <div style="float:right;">Click and drag to zoom!</div>
     <div id="chartContainer" style="height: 600px; width: 100%;"></div>
     <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 </body>

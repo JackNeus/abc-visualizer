@@ -1,4 +1,4 @@
-var render = () => {
+var render = (animate) => {
     // Aggregate book data into buckets a certain number
     // of years wide.
     var aggregateByYear = (bucketSize) => {
@@ -18,6 +18,8 @@ var render = () => {
             buckets.push({
                 startYear: bucketStart + i * bucketSize,
                 endYear: bucketStart + (i + 1) * bucketSize - 1,
+                numBooks: 0,
+                numWords: 0,
                 content: {}
             })
             for (let j = 0; j < 26; j++) {
@@ -33,7 +35,9 @@ var render = () => {
         for (let id in bookData) {
             let book = bookData[id];
             let idx = getBucketNum(book.year);
+            buckets[idx].numBooks += 1;
             for (let key in book.contents) {
+                buckets[idx].numWords += 1;
                 buckets[idx].content[key].push(...book.contents[key])
             }
         }
@@ -91,7 +95,10 @@ var render = () => {
     }
 
     var takeTopN = (N, data) => {
-        let limitData = [...data];
+        let limitData = [];
+        for (let i in data) {
+          limitData.push({...data[i]});
+        }
         var limitFreq = (freq) => {
             freqTuples = []
             for (let key in freq) {
@@ -113,15 +120,66 @@ var render = () => {
             }
             return trimmedFreq;
         }
-        for (var i in limitData) {
+        let wordSet = new Set();
+        for (let i in limitData) {
+            // Initially, take the top N words in each year.
             limitData[i].freq = limitFreq(limitData[i].freq);
+            // Record the top N words.
+            for (let word in limitData[i].freq) {
+              wordSet.add(word);
+            }
         }
+        /*
+        Disabled, this happens way too often.
+
+        // Make sure that we're not dropping any datapoints.
+        // This would occur if a word is in the top N in one year but not another.
+        for (let i in limitData) {
+          wordSet.forEach((word) => { 
+            if (limitData[i].freq[word] === undefined && data[i].freq[word] !== undefined) {
+              console.log("Found missing datapoint!");
+              limitData[i].freq[word] = data[i].freq[word];
+            }
+          });
+        }
+        */
         return limitData;
     }
 
+    var takeWords = (words, data) => {
+      let selectedData = [...data];
+      for (let i in selectedData) {
+        let selectedFreq = {};
+        for (let j in words) {
+          let wordFreq = selectedData[i].freq[words[j]];
+          if (wordFreq !== undefined) {
+            selectedFreq[words[j]] = wordFreq;
+          }
+        }
+        selectedData[i].freq = selectedFreq;
+      }
+      return selectedData;
+    }
+
+    var legendName = "@legend";
     var buildDataSeries = (data) => {
         series = {}
+        console.log(data);
+        series[legendName] = {
+          name: legendName,
+          type: "line",
+          showInLegend: false,
+          dataPoints: {},
+        }
         for (var i in data) {
+            // The @legend series ensures that all x-axis labels are always present.
+            series[legendName].dataPoints[data[i].startYear] = {
+                    label: data[i].startYear + "-" + data[i].endYear,
+                    numBooks: data[i].numBooks,
+                    numWords: data[i].numWords,
+                    x: i,
+                    y: -10,  
+            }
             for (var word in data[i].freq) {
                 if (series[word] === undefined) {
                     series[word] = {
@@ -129,7 +187,8 @@ var render = () => {
                         type: "line",
                         yValueFormatString: "#.###%",
                         showInLegend: false,
-                        dataPoints: {}
+                        dataPoints: {},
+                        lineDashType: "longDash",
                     }
                 }
                 series[word].dataPoints[data[i].startYear] = {
@@ -143,9 +202,11 @@ var render = () => {
         for (var key in series) {
             for (var i in data) {
                 // Fill in missing datapoints with zeroes.
-                if (series[key].dataPoints[data[i].startYear] === undefined) {
+                // TODO: Instead, go back and find the datapoints (if they exist) 
+                // in the untrimmed freq tables. This is probably more accurate.
+                let interpolate = document.getElementById("interpolate").checked;
+                if (!interpolate && series[key].dataPoints[data[i].startYear] === undefined) {
                     series[key].dataPoints[data[i].startYear] = {
-                        label: data[i].startYear + "-" + data[i].endYear,
                         x: i,
                         y: -0.00001,
                         toolTipContent: null,
@@ -164,31 +225,33 @@ var render = () => {
     var data = aggregateByYear(bucketSize);
 
     // Show all data or just data for one letter?
-    let specificLetter = document.getElementById("domain").value;
-    if (specificLetter !== "") {
+    let domain = document.getElementById("domain").value;
+    if (domain !== "") {
         for (var i in data) {
-            data[i].content = data[i].content[specificLetter];
+            data[i].content = data[i].content[domain];
         }
     } else {
         data = aggregateLetters(data);
     }
     data = computeFreqTables(data);
-    var N = 5;
-    data = takeTopN(N, data);
-    console.log(data);
-    console.log(buildDataSeries(data));
+    var N = parseInt(document.getElementById("topN").value);
 
-    // Now: need to stitch together data series by word
-
-    animationDuration = document.getElementById("animate").checked ? 10000 : 0;
+    var specificWords = document.getElementById("words").value;
+    if (specificWords !== "") {
+      data = takeWords(specificWords.split(";"), data);
+      var title = `Relative Frequences of ${specificWords} in the ABC Archive`;
+    } else {
+      data = takeTopN(N, data);
+      var title = `Most Frequent Words In the ABC Archive`;
+    }
 
     var chart = new CanvasJS.Chart("chartContainer", {
-        animationEnabled: true,
-        animationDuration: animationDuration,
+        animationEnabled: animate === true,
+        animationDuration: 10000,
         zoomEnabled: true,
         zoomType: "y",
         title: {
-            text: `Most Frequent Words in the ABC Archive`
+            text: title,
         },
         axisX: {
             valueFormatString: "",
@@ -204,12 +267,12 @@ var render = () => {
                 autoCalculate: true,
             }
         },
-        /*
+        
         legend:{
           cursor: "pointer",
           fontSize: 16,
           itemclick: toggleDataSeries
-        },*/
+        },
         toolTip: {
             shared: true,
             contentFormatter: function(e) {
@@ -219,8 +282,16 @@ var render = () => {
                     return b.dataPoint.y - a.dataPoint.y;
                 });
 
-                content += e.entries[0].dataPoint.label;
-                content += "<br/>";
+                let legendIdx = -1;
+                for (var i in e.entries) {
+                  if (e.entries[i].dataSeries.name === legendName) {
+                    legendIdx = i;
+                    break;
+                  }
+                }
+                content += `<b>${e.entries[legendIdx].dataPoint.label}</b><br />`
+                content += `<i>Book Count: ${e.entries[legendIdx].dataPoint.numBooks}<br /></i>`
+                content += `<i>Word Count: ${e.entries[legendIdx].dataPoint.numWords}<br /></i>`
 
                 var entries = e.entries;
                 for (let j in entries) {
@@ -228,7 +299,7 @@ var render = () => {
                         continue;
                     }
                     // If there are lots of ties, add ellipses to indicate so.
-                    if (j >= N) {
+                    if (document.getElementById("hideTies").checked && j >= N) {
                         content += "...(ties)...";
                         break;
                     }
@@ -256,5 +327,5 @@ var render = () => {
 
 }
 window.onload = function() {
-    render();
+    render(false);
 }
