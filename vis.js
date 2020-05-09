@@ -1,4 +1,4 @@
-var render = (animate) => {
+var render = (animate, buildTable) => {
     // Aggregate book data into buckets a certain number
     // of years wide.
     var aggregateByYear = (bucketSize) => {
@@ -94,17 +94,22 @@ var render = (animate) => {
         return freqData;
     }
 
+    var sortedFreqTuples = (freq) => {
+        freqTuples = []
+        for (let key in freq) {
+            freqTuples.push([freq[key], key]);
+        }
+        freqTuples.sort((a, b) => { return b[0] - a[0] });
+        return freqTuples;
+    }
+
     var takeTopN = (N, data) => {
         let limitData = [];
         for (let i in data) {
-          limitData.push({...data[i]});
+            limitData.push({ ...data[i] });
         }
         var limitFreq = (freq) => {
-            freqTuples = []
-            for (let key in freq) {
-                freqTuples.push([freq[key], key]);
-            }
-            freqTuples.sort((a, b) => { return b[0] - a[0] });
+            let freqTuples = sortedFreqTuples(freq);
             let trimmedFreq = {};
             let i = 0;
             // Keep track of last value to include all ties.
@@ -126,7 +131,7 @@ var render = (animate) => {
             limitData[i].freq = limitFreq(limitData[i].freq);
             // Record the top N words.
             for (let word in limitData[i].freq) {
-              wordSet.add(word);
+                wordSet.add(word);
             }
         }
         /*
@@ -147,38 +152,40 @@ var render = (animate) => {
     }
 
     var takeWords = (words, data) => {
-      let selectedData = [...data];
-      for (let i in selectedData) {
-        let selectedFreq = {};
-        for (let j in words) {
-          let wordFreq = selectedData[i].freq[words[j]];
-          if (wordFreq !== undefined) {
-            selectedFreq[words[j]] = wordFreq;
-          }
+        let selectedData = [];
+        for (let i in data) {
+            selectedData.push({ ...data[i] });
         }
-        selectedData[i].freq = selectedFreq;
-      }
-      return selectedData;
+        for (let i in selectedData) {
+            let selectedFreq = {};
+            for (let j in words) {
+                let wordFreq = selectedData[i].freq[words[j]];
+                if (wordFreq !== undefined) {
+                    selectedFreq[words[j]] = wordFreq;
+                }
+            }
+            selectedData[i].freq = selectedFreq;
+        }
+        return selectedData;
     }
 
     var legendName = "@legend";
     var buildDataSeries = (data) => {
         series = {}
-        console.log(data);
         series[legendName] = {
-          name: legendName,
-          type: "line",
-          showInLegend: false,
-          dataPoints: {},
+            name: legendName,
+            type: "line",
+            showInLegend: false,
+            dataPoints: {},
         }
         for (var i in data) {
             // The @legend series ensures that all x-axis labels are always present.
             series[legendName].dataPoints[data[i].startYear] = {
-                    label: data[i].startYear + "-" + data[i].endYear,
-                    numBooks: data[i].numBooks,
-                    numWords: data[i].numWords,
-                    x: i,
-                    y: -10,  
+                label: data[i].startYear + "-" + data[i].endYear,
+                numBooks: data[i].numBooks,
+                numWords: data[i].numWords,
+                x: i,
+                y: -10,
             }
             for (var word in data[i].freq) {
                 if (series[word] === undefined) {
@@ -233,16 +240,59 @@ var render = (animate) => {
     } else {
         data = aggregateLetters(data);
     }
-    data = computeFreqTables(data);
+    var untrimmedData = computeFreqTables(data);
     var N = parseInt(document.getElementById("topN").value);
 
     var specificWords = document.getElementById("words").value;
     if (specificWords !== "") {
-      data = takeWords(specificWords.split(";"), data);
-      var title = `Relative Frequences of ${specificWords} in the ABC Archive`;
+        data = takeWords(specificWords.split(","), untrimmedData);
+        var title = `Relative Frequences of ${specificWords} in the ABC Archive`;
     } else {
-      data = takeTopN(N, data);
-      var title = `Most Frequent Words In the ABC Archive`;
+        data = takeTopN(N, untrimmedData);
+        var title = `Most Frequent Words In the ABC Archive`;
+    }
+
+    // Build table.
+    if (buildTable) {
+        let rowCount = 0;
+        let rows = []
+        // Build table header and compute row count.
+        let tableHeader = "";
+        for (let i in untrimmedData) {
+            tableHeader += `<th>${untrimmedData[i].startYear}-${untrimmedData[i].endYear}</th>`
+            rowCount = Math.max(rowCount, Object.keys(untrimmedData[i].freq).length);
+        }
+        let tableHTML = `<tr>${tableHeader}</tr>`
+        for (let i = 0; i < rowCount; i++) {
+            rows.push("");
+        }
+        // Build rows.
+        for (let i in untrimmedData) {
+            let freqTuples = sortedFreqTuples(untrimmedData[i].freq);
+            let j = 0;
+            for (; j < freqTuples.length; j++) {
+                // Make sure selected words for the previous domain/bucket size
+                // are still selected.
+                let className = "";
+                if (selectedWords.indexOf(freqTuples[j][1]) != -1) {
+                    className = "selected";
+                }
+                rows[j] += `<td class="${className}"
+                              value="${freqTuples[j][1]}"
+                              onclick="handleCellClick(this);">
+                            ${freqTuples[j][1]}
+                          </td>`;
+            }
+            for (; j < rowCount; j++) {
+                rows[j] += "<td/>";
+            }
+        }
+        // Put it all together!
+        for (let i in rows) {
+            tableHTML += `<tr>${rows[i]}</tr>`;
+        }
+        tableHTML = `<table>${tableHTML}</table>`
+        document.getElementById("wordTable").innerHTML = tableHTML;
     }
 
     var chart = new CanvasJS.Chart("chartContainer", {
@@ -267,11 +317,11 @@ var render = (animate) => {
                 autoCalculate: true,
             }
         },
-        
-        legend:{
-          cursor: "pointer",
-          fontSize: 16,
-          itemclick: toggleDataSeries
+
+        legend: {
+            cursor: "pointer",
+            fontSize: 16,
+            itemclick: toggleDataSeries
         },
         toolTip: {
             shared: true,
@@ -284,10 +334,10 @@ var render = (animate) => {
 
                 let legendIdx = -1;
                 for (var i in e.entries) {
-                  if (e.entries[i].dataSeries.name === legendName) {
-                    legendIdx = i;
-                    break;
-                  }
+                    if (e.entries[i].dataSeries.name === legendName) {
+                        legendIdx = i;
+                        break;
+                    }
                 }
                 content += `<b>${e.entries[legendIdx].dataPoint.label}</b><br />`
                 content += `<i>Book Count: ${e.entries[legendIdx].dataPoint.numBooks}<br /></i>`
@@ -324,8 +374,25 @@ var render = (animate) => {
         }
         chart.render();
     }
-
 }
+
+var selectedWords = [];
+
+function handleCellClick(e) {
+    let word = $(e).attr("value");
+    let elts = $(`td[value="${word}"]`);
+    let wasSelected = $(e).hasClass("selected");
+    if (wasSelected) {
+        selectedWords.splice(selectedWords.indexOf(word), 1);
+        elts.removeClass("selected");
+    } else {
+        selectedWords.push(word);
+        elts.addClass("selected");
+    }
+    document.getElementById("words").value = selectedWords.join(",");
+    render();
+}
+
 window.onload = function() {
-    render(false);
+    render(false, true);
 }
