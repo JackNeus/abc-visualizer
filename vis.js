@@ -31,7 +31,6 @@ var render = (animate, buildTable) => {
         let getBucketNum = (year) => {
             return Math.floor((year - bucketStart) / bucketSize);
         }
-
         for (let id in bookData) {
             let book = bookData[id];
             let idx = getBucketNum(book.year);
