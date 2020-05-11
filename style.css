@@ -14,9 +14,17 @@
     margin-bottom: 100px;
 }
 
+.wordTableContainer {
+  width: 95%;
+}
+
+.resetButton {
+  float: right;
+  margin-bottom: 5px;
+}
+
 #wordTable {
-    font-family: Arial;
-    width: 95%;
+    width: 100%;
 }
 
 #wordTable table,
@@ -35,6 +43,10 @@ td {
     border: 1px inset black;
     width: 4em;
     word-wrap: break-word;
+}
+
+#wordTable td {
+  cursor: pointer;
 }
 
 .selected {

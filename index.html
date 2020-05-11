@@ -44,11 +44,14 @@
     </select>
     <label for="bucketSize">Bucket Size (in Years)&nbsp;&nbsp;</label>
     <input id="bucketSize" type="text" value="10" onchange="render(false, true)" onblur="render(false, true)" />
-    <div style="float:right;">Click and drag to zoom!</div>
+    <div style="float:right;"><a target="_blank" href="help.html"><button>Help</button></a></div>
     <br />
     <div class="wordBox">
         Top
-        <select id="topN" onchange="document.getElementById('words').value = ''; render();">
+        <select id="topN" onchange="
+            document.getElementById('words').value = '';
+            updateTableSelection();
+            render();">
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3" selected>3</option>
@@ -63,8 +66,9 @@
         Words From Each Year
         <b>OR</b>
         Specific Words
-        <input type="text" id="words" placeholder="apple,boat,dog" onchange="render()" onblur="render()" />
+        <input type="text" id="words" placeholder="apple,boat,dog" onchange="updateTableSelection(); render()" onblur="updateTableSelection(); render()" />
     </div>
+    <div style="float:right;">Click and drag to zoom!</div>
     <br />
     <label for="interpolate">Interpolate</label>
     <input id="interpolate" type="checkbox" checked onclick="render()" />
@@ -73,7 +77,12 @@
     <button onclick="render(true)">Animate</button>
     <div id="chartContainer"></div>
     <center>
-        <div id="wordTable"></div>
+        <div class="wordTableContainer">
+            <h2>All Words (Ranked By Frequency)</h2>
+            <h4>Click to Visualize!</h4>
+            <!--<button class="resetButton">Reset</button>-->
+            <div id="wordTable"></div>
+        </div>
     </center>
 </body>
 

@@ -245,8 +245,13 @@ var render = (animate, buildTable) => {
 
     var specificWords = document.getElementById("words").value;
     if (specificWords !== "") {
-        data = takeWords(specificWords.split(","), untrimmedData);
-        var title = `Relative Frequences of ${specificWords} in the ABC Archive`;
+        let words = splitWords(specificWords);
+        data = takeWords(words, untrimmedData);
+        if (words.length == 1) {
+            var title = `Relative Frequency of ${specificWords} in the ABC Archive`;
+        } else {
+            var title = `Relative Frequencies of ${specificWords} in the ABC Archive`;
+        }
     } else {
         data = takeTopN(N, untrimmedData);
         var title = `Most Frequent Words In the ABC Archive`;
@@ -376,6 +381,10 @@ var render = (animate, buildTable) => {
     }
 }
 
+var splitWords = (words) => {
+  return words.split(",").map((w) => { return w.toLowerCase().trim(); });
+}
+
 var selectedWords = [];
 
 function handleCellClick(e) {
@@ -391,6 +400,16 @@ function handleCellClick(e) {
     }
     document.getElementById("words").value = selectedWords.join(",");
     render();
+}
+
+// Update table state based on text box.
+function updateTableSelection() {
+    $(`td`).removeClass("selected");
+    let words = $("#words").val().split(",");
+    selectedWords = [...words];
+    for (let i in words) {
+        let elts = $(`td[value="${words[i]}"]`).addClass("selected");
+    }
 }
 
 window.onload = function() {

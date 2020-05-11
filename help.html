@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <title>ABC Visualization Tool</title>
+</head>
+
+<body>
+    <div style="width: 50%">
+        <b>Tool Tips</b>: Pop-up displayed when a data point is hovered over. In addition to showing the numerical values of words' relative frequencies, the tool tip also shows the number of books in a year range and the total number of words (less stopwords) in those books. The aim here is to help the user contextualize results; if there is a particularly high or low value for a word but there are very few books/words for the data point, that specific value can be more readily discarded as noise.<br /><br />
+        <b>Domain</b>: The domain of the text to be analyzed. "All Letters" will use the full corpus of the ABC Archive, whereas choosing a specific letter will only use words from that letter's pages (i.e. "A" will only use all text from the "A" pages across all books in the archive).<br /><br />
+        <b>Bucket Size</b>: The "width" of each data point. This is necessary because the ABC Digital Archive is not large enough to plot each year as its own data point in a meaningful way (as any one year has at most a few books and most often one or zero). Buckets start on years divisible by the bucket size -- if the bucket size is 10, the buckets will be 1800-1809, 1810-1819, etc.<br />
+        Mode of Operation: The tool currently supports two modes of operation:<br />
+        1. Top N Words. The N (1-10) most frequent words for each year range are displayed. This mode of operation can be viewed as an explorative tool; the user enters a nonspecific query and is shown a general, objective visualization of the most frequent terms for each year range. It is useful for preliminary research in which the user is looking for notable trends to further investigate with conventional literary research methods and/or additional digital humanities techniques.<br />
+        2. Specific words. In this mode of operation, the user specifies a number of words (comma separated). The relative frequencies of these specific words are displayed on the chart. This mode of operation is intended to be used for deeper analysis of specific trends and hypotheses (perhaps inspired by general queries in the first mode). A user can manually enter the words they wish to analyze or can select words from the table lower down on the webpage.<br /><br />
+        <b>Ranked Table</b>: At the bottom of the webpage there is a table that displays all words that appear in each year range, ordered by frequency. The user can click on words in the table to select them for the "specific words" mode of operation.<br /><br />
+        <b>Interpolation</b>: A word that appears in some year ranges may not appear in others. When this is the case, there are two options: explicitly set the frequency of the word in the missing ranges to zero, or interpolate between the data points that are present.<br />
+        Both approaches have merits. Interpolating between data points allows the user to better contextualize the change in usage of a specific word over time, as they can easily pick out the trend line that moves horizontally across the screen. One possible problem with interpolation is that the trendline could be misconstrued as a continuous decrease in the frequency of a word over time, rather than a simple visual connection of discrete and separate data points (I addressed this by making the lines dashed to suggest discontinuity). A second problem with interpolation is that it can make the chart difficult to read when many different words are being graphed (i.e. in "top N" mode or when the bucket size is small).<br />
+        The main plus of not using interpolation is that the chart is less of an eyesore when a large amount of data is being visualized. However, a major con is that in this mode it is is very hard to visually discern which words show up in several non adjacent year ranges (i.e. which words show up over time and are interesting to look at) and which words show up just once or twice (i.e. noise). For this reason, <i>interpolation is the recommended setting</i>.<br /><br />
+        <b>Hide Ties For Last</b>: When operating in the "top N" mode, there are often ties for the Nth most frequent word. Leaving this option checked will hide the full list of words from the tooltips in the interest of brevity. Unchecking the option will display all words that tie for one of the top N most frequent words in a year range.<br /><br />
+        <b>Zoom</b>: The user can click and drag to zoom in on any part of visualization. Pan/reset zoom buttons are located at the top right of the chart.<br /><br />
+        <b>Animate</b>: Self explanatory, will animate the chart visualization.
+    </div>
+</body>
+
+</html>
