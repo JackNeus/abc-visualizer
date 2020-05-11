@@ -68,12 +68,15 @@
         Specific Words
         <input type="text" id="words" placeholder="apple,boat,dog" onchange="updateTableSelection(); render()" onblur="updateTableSelection(); render()" />
     </div>
-    <div style="float:right;">Click and drag to zoom!</div>
+    <div style="float:right;"><span>Click and drag to zoom!</span></div>
+    </div>
     <br />
     <label for="interpolate">Interpolate</label>
     <input id="interpolate" type="checkbox" checked onclick="render()" />
     <label for="hideTies" id="tieText">Hide Ties for Last</label>
     <input id="hideTies" type="checkbox" checked />
+        <label for="showLegend">Show Legend</label>
+        <input id="showLegend" type="checkbox" onclick="render()" />
     <button onclick="render(true)">Animate</button>
     <div id="chartContainer"></div>
     <center>

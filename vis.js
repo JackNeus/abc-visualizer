@@ -192,7 +192,7 @@ var render = (animate, buildTable) => {
                         name: word,
                         type: "line",
                         yValueFormatString: "#.###%",
-                        showInLegend: false,
+                        showInLegend:  document.getElementById("showLegend").checked,
                         dataPoints: {},
                         lineDashType: "longDash",
                     }
